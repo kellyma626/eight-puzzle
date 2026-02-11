@@ -59,6 +59,19 @@ def misplaced_tile(state):
             count += 1
     return count
 
+# sum of Manhattan distances for each tile
+# distance = |row1-row2| + |col1-col2|
+def manhattan_distance(state):
+    distance = 0
+    for i in range(N*N):
+        if state[i] == 0:
+            continue
+        goal_index = GOAL_STATE.index(state[i])
+        x1, y1 = i // N, i % N
+        x2, y2 = goal_index // N, goal_index % N
+        distance += abs(x1 - x2) + abs(y1 - y2)
+    return distance
+
 # General Search Algorithm
 
 def general_search(start_state, heuristic_type):
@@ -68,12 +81,15 @@ def general_search(start_state, heuristic_type):
     frontier = []
 
     # explored keeps track of visited states
-    explored = set()
+    # value stored is best g(n) seen so far
+    explored = {}
 
     if heuristic_type == 1:
         h = 0
-    else:
+    elif heuristic_type == 2:
         h = misplaced_tile(start_state)
+    else:
+        h = manhattan_distance(start_state)
 
     heapq.heappush(frontier, (h, 0, start_state))
 
@@ -87,10 +103,11 @@ def general_search(start_state, heuristic_type):
             print("Goal state reached!")
             return
 
-        if state in explored:
+        # if we've seen this state with a better cost, skip
+        if state in explored and explored[state] <= g:
             continue
 
-        explored.add(state)
+        explored[state] = g
 
         # expand neighbors
         for neighbor in get_neighbors(state):
@@ -99,7 +116,9 @@ def general_search(start_state, heuristic_type):
 
             if heuristic_type == 1:
                 new_h = 0
-            else:
+            elif heuristic_type == 2:
                 new_h = misplaced_tile(neighbor)
+            else:
+                new_h = manhattan_distance(neighbor)
 
             heapq.heappush(frontier, (new_g + new_h, new_g, neighbor))
