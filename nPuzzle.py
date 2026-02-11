@@ -49,9 +49,19 @@ def get_neighbors(state):
 
     return neighbors
 
+# Heuristic Functions
+
+# counts how many tiles don’t match their goal position
+def misplaced_tile(state):
+    count = 0
+    for i in range(N*N):
+        if state[i] != 0 and state[i] != GOAL_STATE[i]:
+            count += 1
+    return count
+
 # General Search Algorithm
 
-def general_search(start_state):
+def general_search(start_state, heuristic_type):
 
     # frontier is a priority queue ordered by f(n)
     # each element is (f(n), g(n), state)
@@ -60,7 +70,12 @@ def general_search(start_state):
     # explored keeps track of visited states
     explored = set()
 
-    heapq.heappush(frontier, (0, 0, start_state))
+    if heuristic_type == 1:
+        h = 0
+    else:
+        h = misplaced_tile(start_state)
+
+    heapq.heappush(frontier, (h, 0, start_state))
 
     # main search loop
     while frontier:
@@ -81,4 +96,10 @@ def general_search(start_state):
         for neighbor in get_neighbors(state):
             # each move costs 1
             new_g = g + 1
-            heapq.heappush(frontier, (new_g, new_g, neighbor))
+
+            if heuristic_type == 1:
+                new_h = 0
+            else:
+                new_h = misplaced_tile(neighbor)
+
+            heapq.heappush(frontier, (new_g + new_h, new_g, neighbor))
